@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Este Script tem como objetivo fazer backup da configuração dos equipamentos ASAs
+# Este Script tem como objetivo fazer backup da configuração dos equipamentos ASAs e enviar para o seu servidor FTP
 # Eh necessario instalar algumas dependencias como:
 ## pip install netmiko
 #
