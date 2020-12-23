@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Este Script tem como objetivo fazer backup da configuração dos equipamentos ASAs
+# Este Script tem como objetivo fazer backup da configuração dos equipamentos ASAs e enviar para o seu servidor FTP
 # Eh necessario instalar algumas dependencias como:
 ## pip install netmiko
 #
@@ -20,30 +20,14 @@ print('Modulos Importados')
 
 # Lista dos equipamentos para fazer backup
 asa_list = ['198.18.133.254', '198.18.133.254', '198.18.133.254']
-#print('Temos os seguintes Equipamentos ' + asa_list)
-
-#############################################################################################
-# MALUQUICE MINHA - VAGNER SILVA - Desconsiderar
-#for i in asa_list:
-# net_connect = ConnectHandler(**i)
-# # get the prompt as a string
-# output=net_connect.send_command_expect('show version | grep %')
-# print("--------------------------------------------------------------------------------------------------------")
-# print(output)
-#
-#
-#
-##############################################################################################
 
 # Parametro 1 pega um argumento para adicionar como nome do arquivo de backup que sera gravado
-# Checa se temos o parametro necessario para continuarr
-#Tive que corrigir para 2 aqui, antes estava 1
+# Checa se temos o parametro necessario para continuar
 if len(sys.argv) < 2:
-    sys.exit('ERRO: Por favor inclua um parametro apos o script, exemplo * python asa-backup-v1.py 2020-12-25 *')
+    sys.exit('ERRO: Por favor inclua um parametro apos o script para adicionar no nome do backup, exemplo * python asa-backup-v1.py 2020-12-25 *')
     
-# Tive que mudar para 0 pois com o numero 1 estava com erro
 param_1 = sys.argv[1]
-print('Checando o parametro fornecido de data... param_1: ' + param_1)
+print('Checando o parametro fornecido ... param_1: ' + param_1)
 
 ##### Existem 3 Formas de pegar as senhas:
 ## Forma 1
@@ -61,7 +45,7 @@ print('Checando o parametro fornecido de data... param_1: ' + param_1)
 
 ## Forma 3
 ## Pedir para o administrator digitar
-#Primeiro dos Firewalls
+#Primeiro as credenciais dos Firewalls
 username = input("ASAs - Por favor insira o usuario de backup:\n")
 print('Por favor insira a senha do usuario de backup do ASA:')
 password = getpass.getpass()
@@ -71,18 +55,18 @@ username_2 = input("FTP - Por favor insira o usuario do FTP:\n")
 print('Por favor insira a senha do usuario do FTP:')
 password_2 = getpass.getpass()
 
-#Agora o IP
+#Agora o IP do servidor de FTP, os IPs dos Firewalls estao no proprio codigo, la em cima
 servidor_ftp = input("FTP - Por favor insira o IP do FTP:\n")
 
 secret = password
 print('Obtendo acesso com as credenciais fornecidas')
 
-#check that we have all of the environment variables we need
+# Checa se nao ha usuario como None se nao ha setado variaveis do ambiente
 if (username == 'None') or (password == 'None'):
         sys.exit('ERROR: Login username/password not set in environment variables')
 
 
-# Aqui eh o looping principal que vai rodar todos os equipamentos especificados e fazer backup
+# Aqui eh o looping principal que vai rodar todos os equipamentos especificados e fazer backup para o servidor FTP
 for asa in asa_list:
 
     # Cria a sessao SSH utilizando o netmiko
@@ -102,11 +86,11 @@ for asa in asa_list:
     output = device.send_config_set(config_commands)
     print('Comandos enviados para o ' + asa)
 
-    #print the output
+    #printar a saida de comandos executados
     print(output)
     print('Backup OK')
 
-    #close the ssh session cleanly
+    #Fecha a conexao ssh do equipamento
     device.disconnect()
     print('Sessao ssh encerrada')
 
