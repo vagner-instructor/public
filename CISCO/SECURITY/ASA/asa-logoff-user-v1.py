@@ -19,8 +19,7 @@ from netmiko import ConnectHandler
 print('Modulos Importados')
 
 # Lista dos equipamentos para fazer backup
-# Adicionando as variaveis dos Firewalls de Costa Carvalho e de Ponte Pequena (CC-10.7.222.60 e PP-10.36.162.10)
-lista_asa = ['10.7.222.60, 10.36.162.10']
+lista_asa = ['198.18.133.254', '198.18.133.254']
 
 # Parametro 1 pega um argumento para adicionar como nome do usuario para derrubar a sessao da vpn
 # Checa se temos o parametro necessario para continuarr
@@ -84,3 +83,7 @@ for asa in lista_asa:
     print('Sessao ssh encerrada')
 
 print('Terminou em todos os equipamentos')
+
+
+# Criado por Vagner Silva - vagner.araujo@msn.com
+# Github - https://github.com/vagner-instructor
