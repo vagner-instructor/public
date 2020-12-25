@@ -19,7 +19,7 @@ from netmiko import ConnectHandler
 print('Modulos Importados')
 
 # Lista dos equipamentos para fazer backup
-asa_list = ['198.18.133.254', '198.18.133.254', '198.18.133.254']
+lista_asa = ['198.18.133.254', '198.18.133.254', '198.18.133.254']
 
 # Parametro 1 pega um argumento para adicionar como nome do arquivo de backup que sera gravado
 # Checa se temos o parametro necessario para continuar
@@ -29,14 +29,14 @@ if len(sys.argv) < 2:
 param_1 = sys.argv[1]
 print('Checando o parametro fornecido ... param_1: ' + param_1)
 
-##### Existem 3 Formas de pegar as senhas:
+##### Existem Algumas Formas de pegar as senhas:
 ## Forma 1
 ## Pegar o username/password das variaveis de ambiente locais
 #username = os.environ.get('CISCOUSERNAME', 'None')
 #password = os.environ.get('CISCOPASSWORD', 'None')
 
-## Forma 2
-## Eh possivel especificar no Codigo as senhas mas tem um risco de cair em maos erradas, se for subir em docker seria necessario
+##Forma 2
+# Eh possivel especificar no Codigo tambem
 #username = 'admin'
 #password = 'C1sco12345'
 #username_2 = 'vagner.silva'
@@ -67,7 +67,7 @@ if (username == 'None') or (password == 'None'):
 
 
 # Aqui eh o looping principal que vai rodar todos os equipamentos especificados e fazer backup para o servidor FTP
-for asa in asa_list:
+for asa in lista_asa:
 
     # Cria a sessao SSH utilizando o netmiko
     print('Criando a conexao ssh para ' + asa)
