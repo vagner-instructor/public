@@ -31,17 +31,17 @@ print('Checando parametros... param_1: ' + param_1)
 
 ##### Existem Algumas Formas de pegar as senhas:
 ## Forma 1
-## Pegar o username/password das variaveis de ambiente locais
+## Coletar o username/password das variaveis de ambiente locais
 #username = os.environ.get('CISCOUSERNAME', 'None')
 #password = os.environ.get('CISCOPASSWORD', 'None')
 
 ##Forma 2
-# Eh possivel especificar no Codigo tambem
+# Especificar no Codigo
 #username = 'admin'
 #password = 'C1sco12345'
 
 ##Forma 3
-#Ou pedir para digitar
+# Pedir para digitar
 username = input("Por favor insira o usuario:\n")
 #password = input("Por favor insira a senha:\n")
 print('Por favor insira a senha:')
@@ -50,20 +50,20 @@ password = getpass.getpass()
 secret = password
 print('Obtendo acesso com as credenciais fornecidas')
 
-#check that we have all of the environment variables we need
+# Checa se temos o parametro necessario para continuar
 if (username == 'None') or (password == 'None'):
         sys.exit('ERROR: Login username/password not set in environment variables')
 
 
-#start the main loop
+# Looping que vai rodar todos os equipamentos especificados 
 for asa in lista_asa:
 
-    #create the ssh session using netmiko
+    # Cria a sessao SSH utilizando o netmiko
     print('Criando a conexao ssh para ' + asa)
     device = ConnectHandler(device_type='cisco_asa', ip=asa, username=username, password=password, secret=secret)
     print('Conexao estabelecida no equipamento ' + asa)
 
-    #preload our config changes into a single array
+    # Lista de comandos
     config_commands = [
 #        'conf t',
 #        'terminal width 300',
@@ -73,20 +73,15 @@ for asa in lista_asa:
         'network-object object talos_ip_blocklist-' + param_1
     ]
     print('Enviando a lista de comandos no ' + asa)
-#######################
-# Para testar
-#    config_commands = [
-#        'show version'
-#    ]
-    #send our Cisco-specific commands and dump the output to a variable
+    # Envia os comandos Cisco especificos e guarda a saida em uma variavel
     output = device.send_config_set(config_commands)
     print('sent ASA command to ' + asa)
 
-    #print the output
+    # Printar a saida de comandos executados
     print(output)
 
-    #close the ssh session cleanly
+    # Fecha a conexao ssh do equipamento
     device.disconnect()
     print('closed ssh session')
 
-print('finished on all firewall devices')
+print('Terminou em todos os equipamentos')

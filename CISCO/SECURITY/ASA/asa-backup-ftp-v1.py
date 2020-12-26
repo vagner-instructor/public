@@ -45,17 +45,17 @@ print('Checando o parametro fornecido ... param_1: ' + param_1)
 
 ## Forma 3
 ## Pedir para o administrator digitar
-#Primeiro as credenciais dos Firewalls
+# Credenciais dos Firewalls
 username = input("ASAs - Por favor insira o usuario de backup:\n")
 print('Por favor insira a senha do usuario de backup do ASA:')
 password = getpass.getpass()
 
-#Agora do FTP
+# Usuario/Senha do FTP
 username_2 = input("FTP - Por favor insira o usuario do FTP:\n")
 print('Por favor insira a senha do usuario do FTP:')
 password_2 = getpass.getpass()
 
-#Agora o IP do servidor de FTP, os IPs dos Firewalls estao no proprio codigo, la em cima
+# IP do servidor de FTP
 servidor_ftp = input("FTP - Por favor insira o IP do FTP:\n")
 
 secret = password
@@ -63,7 +63,7 @@ print('Obtendo acesso com as credenciais fornecidas')
 
 # Checa se nao ha usuario como None se nao ha setado variaveis do ambiente
 if (username == 'None') or (password == 'None'):
-        sys.exit('ERROR: Login username/password not set in environment variables')
+        sys.exit('ERRO: Login username/password nao configurado nas variveis do ambiente')
 
 
 # Looping que vai rodar todos os equipamentos especificados e fazer backup para o servidor FTP
@@ -82,15 +82,15 @@ for asa in lista_asa:
         'terminal width 300',
         'copy /noconfirm running-config ftp://' + username_2 + ':' + password_2 + '@' + servidor_ftp + '/' + asa + '_' + param_1, 
     ]
-    #Envia os comandos Cisco especificos e guarda a saida em uma variavel
+    # Envia os comandos Cisco especificos e guarda a saida em uma variavel
     output = device.send_config_set(config_commands)
     print('Comandos enviados para o ' + asa)
 
-    #printar a saida de comandos executados
+    # Printar a saida de comandos executados
     print(output)
     print('Backup OK')
 
-    #Fecha a conexao ssh do equipamento
+    # Fecha a conexao ssh do equipamento
     device.disconnect()
     print('Sessao ssh encerrada')
 

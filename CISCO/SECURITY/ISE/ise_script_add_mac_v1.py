@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+
+# Este Script tem como objetivo fazer backup da configuracao dos equipamentos ASAs
+# Eh necessario instalar algumas dependencias como:
+## pip install netmiko
+## pip install schedule
+# Criar uma pasta para armazenar os backups, exemplo "C:\Filezilla\Backups\ASA\"
+# Criar um arquivo com os ips dos ASAs na pasta com o nome "asa-backup-schedule-devices"
+# Criado por Vagner Silva - vagner.araujo@msn.com
+# Github - https://github.com/vagner-instructor
+#
+# Agradecimentos para https://dmitrygolovach.com/python-and-ise-monitor-mode/ - Achei erros no codigo dele e colaborei tambem
+
 import sys
 import re
 import getpass

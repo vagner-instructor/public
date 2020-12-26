@@ -5,6 +5,7 @@
 ## pip install netmiko
 ## pip install schedule
 # Criar uma pasta para armazenar os backups, exemplo "C:\Filezilla\Backups\ASA\"
+# Criar um arquivo com os ips dos ASAs na pasta com o nome "asa-backup-schedule-devices"
 # Criado por Vagner Silva - vagner.araujo@msn.com
 # Github - https://github.com/vagner-instructor
 #
@@ -22,7 +23,7 @@ import schedule
 def BACKUP():
     FILETIME = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     TNOW = datetime.datetime.now().replace(microsecond=0)
-    IP_LIST = open('asa-backup-devices')
+    IP_LIST = open('asa-backup-schedule-devices')
     for IP in IP_LIST:
         ASA = {
             'device_type': 'cisco_asa',
@@ -63,7 +64,6 @@ def BACKUP():
         IP = IP.rstrip("\n")
         IP = IP.rstrip("'")
         ASA_BACKUP_FILE = "C:/Filezilla/Backups/ASA/" + "%a-%a-asa-backup-file.txt" % (IP, FILETIME)
-        #ASA_BACKUP_FILE = "C:/Filezilla/Backups/ASA/%a-" % IP + "%a-asa-backup-file.txt" % FILETIME
         SAVE_FILE = open(ASA_BACKUP_FILE, 'w')
         SAVE_FILE.write(output)
         SAVE_FILE.close
@@ -72,7 +72,7 @@ def BACKUP():
         print('Sessao ssh encerrada')
 
 schedule.every().day.at("10:30").do(BACKUP)
-#Cada empresa tem uma janela diferente e um requisito em particular 
+#Cada empresa tem uma janela diferente e um requisito em particular, exemplos abaixo
 #schedule.every(10).minutes.do(BACKUP)
 #schedule.every().hour.do(BACKUP)
 #schedule.every().day.at("10:30").do(BACKUP)
