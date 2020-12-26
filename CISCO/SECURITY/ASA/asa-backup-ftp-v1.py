@@ -4,7 +4,7 @@
 # Eh necessario instalar algumas dependencias como:
 ## pip install netmiko
 #
-# Personalizado por Vagner Silva - vagner.araujo@msn.com
+# Criado por Vagner Silva - vagner.araujo@msn.com
 # Github - https://github.com/vagner-instructor
 #
 # Agradecimentos para RaceFPV (https://gist.github.com/RaceFPV), inspiração para esse Script "Maroto", o original tinha um objetivo diferente
@@ -66,7 +66,7 @@ if (username == 'None') or (password == 'None'):
         sys.exit('ERROR: Login username/password not set in environment variables')
 
 
-# Aqui eh o looping principal que vai rodar todos os equipamentos especificados e fazer backup para o servidor FTP
+# Looping que vai rodar todos os equipamentos especificados e fazer backup para o servidor FTP
 for asa in lista_asa:
 
     # Cria a sessao SSH utilizando o netmiko
@@ -74,7 +74,7 @@ for asa in lista_asa:
     device = ConnectHandler(device_type='cisco_asa', ip=asa, username=username, password=password, secret=secret)
     print('Conexao estabelecida no equipamento ' + asa)
 
-    # Pegar a lista de comandos e jogar dentro de um Array
+    # Lista de comandos
     print('Enviando a lista de comandos no ' + asa + '_' + param_1)
 #
     config_commands = [
@@ -82,7 +82,7 @@ for asa in lista_asa:
         'terminal width 300',
         'copy /noconfirm running-config ftp://' + username_2 + ':' + password_2 + '@' + servidor_ftp + '/' + asa + '_' + param_1, 
     ]
-    #send our Cisco-specific commands and dump the output to a variable
+    #Envia os comandos Cisco especificos e guarda a saida em uma variavel
     output = device.send_config_set(config_commands)
     print('Comandos enviados para o ' + asa)
 
