@@ -1,0 +1,290 @@
+#!/bin/bash
+
+#Version 2
+#Last Modification Date: 08/19/2021
+#Description:This script is used to get the status of the connection from Site collector to exabeam cloud and google services. 
+#Last Change:
+##Adding Status for understanding of the results. 
+##Changing the way that we run DNS, NC and CURL commands to create the traffic light for answers 
+##Adding Starting section to identify when a domain starts and finishes in the function RunCommands.   
+
+#Parameters
+instanceid=$1
+proxy=$2
+
+#Variables
+starttime=`date`
+resultfile="network_check_result.log"
+osfull=`cat /etc/*release* | grep PRETTY_NAME | cut -d '"' -f 2` 
+osshort=`cat /etc/*release* | grep PRETTY_NAME | cut -d '"' -f 2 | cut -d ' ' -f 1,2`
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+#Validation start
+if [ "$instanceid" = "" ];then
+        echo "${red}Error: No instance defined${reset}"
+        exit 1
+fi
+echo "File Created: $resultfile"
+echo "test run: $starttime" > $resultfile 
+echo "instance id: $instanceid" >> $resultfile 
+echo "Operating System: $osfull"
+echo "Operating System: $osfull" >> $resultfile
+
+if [ -f 'network_check_result.log' ];then
+	rm -f network_check_result.log
+fi 
+
+if [ "$proxy" = "" ];then
+	echo "No proxy enabled" >> $resultfile
+else
+        echo "Proxy configured: $proxy" >> $resultfile 
+fi
+
+
+##Libraries Confirmation
+function CommandsVerification () {
+	is_netcat=`yum list installed | grep nmap-ncat`
+	is_dig=`yum list installed | grep bind-utils`
+	is_curl=`yum list installed |egrep '^curl'`
+	error_counter=0
+	user=`whoami`
+	if [ "$user" != "root" ];then
+		if [ "$is_netcat" = "" ];then
+        		echo "${red}Error: Netcat is not installed, running: sudo yum install -y nmap-ncat ${reset}"
+        		sudo yum install -y -q nmap-ncat
+		fi
+		if [ "$is_dig" = "" ];then
+        		echo "${red}Error: Bind-utils is not installed, running: sudo yum install -y bind-utils ${reset}"
+        		sudo yum install -y -q bind-utils
+		fi
+		if [ "$is_curl" = "" ];then
+        		echo "${red}Error: Curl is not installed, running: sudo yum install -y curl.x86_64 ${reset}"
+        		sudo yum install -y -q curl.x86_64
+		fi
+	else
+        	if [ "$is_netcat" = "" ];then
+                	echo "${red}Error: Netcat is not installed, running: sudo yum install -y nmap-ncat ${reset}"
+                	yum install -y -q nmap-ncat
+        	fi
+        	if [ "$is_dig" = "" ];then
+                	echo "${red}Error: Bind-utils is not installed, running: sudo yum install -y bind-utils ${reset}"
+                	yum install -y -q bind-utils
+        	fi
+        	if [ "$is_curl" = "" ];then
+                	echo "${red}Error: Curl is not installed, running: sudo yum install -y curl.x86_64 ${reset}"
+                	yum install -y -q curl.x86_64
+        	fi
+	fi
+	echo "All necessary libraries are installed"
+	RunCommands
+}
+
+
+function BeatsVerification () {
+	domain="$1.beats.exabeam.com"
+	echo "" >> $resultfile 
+	echo "Beats Verification" >> $resultfile
+	echo $domain >> $resultfile
+	if [ "$proxy" = "" ];then
+		DNSVerification $domain
+        	NetworkVerification $domain
+	fi
+	WebVerification $domain
+}
+
+function ConnectVerification () {
+        domain="$1.connect.exabeam.com"
+        echo "" >> $resultfile
+        echo "Connect Verification" >> $resultfile
+        echo $domain >> $resultfile
+        DNSVerification $domain
+        NetworkVerification $domain
+        #WebVerification $domain
+	
+}
+
+function AccountsGoogleVerification () {
+        domain="accounts.google.com"
+        echo "" >> $resultfile
+        echo "AccountsGoogle Verification" >> $resultfile
+        echo $domain >> $resultfile
+        if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi        
+        WebVerification $domain
+}
+
+function Oauth2Verification () {
+        domain="oauth2.googleapis.com"
+        echo "" >> $resultfile
+        echo "Oauth2 Verification" >> $resultfile
+        echo $domain >> $resultfile
+        if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi	
+        WebVerification $domain
+}
+
+function GoogleApisVerification () {
+        domain="www.googleapis.com"
+        echo "" >> $resultfile
+        echo "Google Apis Verification" >> $resultfile
+        echo $domain >> $resultfile
+	if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi        
+        WebVerification $domain
+}
+
+function StorageGoogleApisVerification () {
+        domain="storage.googleapis.com"
+        echo "" >> $resultfile
+        echo "Storage Google Apis Verification" >> $resultfile
+        echo $domain >> $resultfile
+	if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi        
+        WebVerification $domain
+}
+
+function PubSubVerification () {
+        domain="pubsub.googleapis.com"
+        echo "" >> $resultfile
+        echo "Pub/Sub Google Apis Verification" >> $resultfile
+        echo $domain >> $resultfile
+        if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi
+        WebVerification $domain
+}
+
+function AccountsGoogleApisVerification () {
+        domain="accounts.googleapis.com"
+        echo "" >> $resultfile
+        echo "Accounts Google Apis Verification" >> $resultfile
+        echo $domain >> $resultfile
+        if [ "$proxy" = "" ];then
+                DNSVerification $domain
+                NetworkVerification $domain
+        fi
+        WebVerification $domain
+}
+
+#Validation Functions
+
+function DNSVerification (){
+	domain=$1
+	SplitLine
+	echo "DNS Verification" >> $resultfile 
+	dig $1 | grep -C 1 "ANSWER SECTION"  >> $resultfile 2>&1
+	dnsanswer=`dig $1 | grep -C 1 "ANSWER SECTION" | egrep '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
+	if [ "$dnsanswer" != "" ];then
+		echo "${green}DNS is Resolving - Status Green${reset}"
+	else
+		echo "${red}DNS is not Resolving - Status Red${reset}"
+	fi
+	SplitLine 
+}
+
+function NetworkVerification(){
+	domain=$1
+	SplitLine 
+	echo "Network Verification" >> $resultfile
+	nc -v -w 1 -i 1 $domain 443 >> $resultfile 2>&1
+	ncanswer=`nc -vv -z $domain 443  2>&1 | grep Connected`
+	if [ "$ncanswer" != "" ];then
+		echo "${green}Network is Connecting - Status Green${reset}"
+	else
+		echo "${red}Network is not Connecting - Status Red${reset}"
+	fi
+	SplitLine
+}
+
+function WebVerification(){
+        domain=https://$1
+        SplitLine 
+        echo "Web Verification" >> $resultfile
+	if [ "$proxy" = "" ];then
+                curl -I -v --max-time 20 $domain >> $resultfile 2>&1
+		curlanswer=`curl -I -v --max-time 20 $domain 2>&1 | grep -e Connected -e "Connection state changed"`
+		if [ "$curlanswer" != "" ];then
+			echo "${green}Web is Connecting - Status Green${reset}"
+		else
+			echo "${red}Web is not Connecting - Status Red${reset}"
+		fi
+		
+	else
+		curl -I -v --max-time 20 -x $proxy $domain >> $resultfile 2>&1
+		curlanswer=`curl -I -v --max-time 20 -x $proxy $domain 2>&1 | grep -e "Received HTTP code" -e "from proxy after CONNECT"`
+                #curlanswer=`curl -I -v --max-time 20 -x $proxy $domain 2>&1 | grep -e Connected -e "Connection state changed"`
+                if [ "$curlanswer" != "" ];then 
+                        echo "${red}Web is not Connecting - Status Red ${reset}"
+                else
+                        echo "${green}Web is Connecting - Status Green ${reset}"
+                fi
+ 
+        fi
+        SplitLine
+ }
+
+function SplitLine (){
+	echo "" >> $resultfile
+	echo "__________________________________________________________" >> $resultfile
+	echo "" >> $resultfile
+}
+
+function RunCommands (){
+	echo "Starting Beats"
+	BeatsVerification $instanceid
+	echo "Beats Done!" >> $resultfile
+	SplitLine 
+	echo "Beats Done!"
+	echo "Starting Connect"
+	ConnectVerification $instanceid
+	echo "Connect Done!" >> $resultfile
+	SplitLine
+	echo "Connect Done!"
+	echo "Starting Accounts google"
+	AccountsGoogleVerification
+	echo "Accounts google Done!" >> $resultfile
+	SplitLine
+	echo "Accounts Done!"
+	echo "Starting Oauth2"
+	Oauth2Verification
+	echo "Oauth2 Done!" >> $resultfile
+	SplitLine
+	echo "Oauth2 Done!"
+	echo "Starting GoogleApis"
+	GoogleApisVerification
+	echo "Google Apies Done!" >> $resultfile
+	SplitLine
+	echo "Google Apies Done!"
+	echo "Starting Storage"
+	StorageGoogleApisVerification
+	echo "Storage Done!" >> $resultfile
+	SplitLine
+	echo "Storage Done!"
+	echo "Starting PubSub"
+	PubSubVerification
+	echo "PubSub Done!" >> $resultfile
+	SplitLine
+	echo "PubSub Done!"
+	echo "Starting Account google Apis"
+	AccountsGoogleApisVerification
+	echo "Account google Apis Done!" >> $resultfile
+	SplitLine
+	echo "Account google Apis Done!"
+}
+
+
+#RunCommands
+
+CommandsVerification
+
