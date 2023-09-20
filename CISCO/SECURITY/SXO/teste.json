@@ -1,0 +1,382 @@
+{
+    "workflow": {
+      "unique_name": "definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU",
+      "name": "Vagner-pb0001-sxo-Amp-Outdated-Webex",
+      "title": "Vagner-pb0001-sxo-Amp-Outdated-Webex",
+      "type": "generic.workflow",
+      "base_type": "workflow",
+      "variables": [
+        {
+          "schema_id": "datatype.secure_string",
+          "properties": {
+            "value": "*****",
+            "scope": "local",
+            "name": "AMP_API_KEY",
+            "type": "datatype.secure_string",
+            "is_required": true,
+            "is_invisible": false
+          },
+          "unique_name": "variable_workflow_01TPWWNVEWU245EoKRL9RX0g3VNFZVH5lZd",
+          "object_type": "variable_workflow"
+        },
+        {
+          "schema_id": "datatype.string",
+          "properties": {
+            "value": "Vagner Silva",
+            "scope": "local",
+            "name": "WEBEX_TEAMS_ROOM_NAME",
+            "type": "datatype.string",
+            "is_required": false,
+            "is_invisible": false
+          },
+          "unique_name": "variable_workflow_01TPUOZYD5ZAI6M3J5Sm8EXOFL35drUxnig",
+          "object_type": "variable_workflow"
+        },
+        {
+          "schema_id": "datatype.string",
+          "properties": {
+            "value": "49220a959d9a4294fd27",
+            "scope": "local",
+            "name": "AMP_CLIENT_ID",
+            "type": "datatype.string",
+            "is_required": true,
+            "is_invisible": false
+          },
+          "unique_name": "variable_workflow_01TPUELNMBTGA3ZCNryZwJOAQtTAdz5MWAB",
+          "object_type": "variable_workflow"
+        },
+        {
+          "schema_id": "datatype.string",
+          "properties": {
+            "value": "",
+            "scope": "output",
+            "name": "Output_Python",
+            "type": "datatype.string",
+            "is_required": false,
+            "is_invisible": false
+          },
+          "unique_name": "variable_workflow_01TPV1B9JZ77D69HnMjrmtCc9KApyY2Hq3W",
+          "object_type": "variable_workflow"
+        },
+        {
+          "schema_id": "datatype.secure_string",
+          "properties": {
+            "value": "*****",
+            "scope": "local",
+            "name": "WEBEX_TEAMS_ACCESS_TOKEN",
+            "type": "datatype.secure_string",
+            "is_required": false,
+            "is_invisible": false
+          },
+          "unique_name": "variable_workflow_01TPUPQXIMLZ66e3Pzkpu98wlu3ksFO2Nsj",
+          "object_type": "variable_workflow"
+        }
+      ],
+      "properties": {
+        "atomic": {
+          "is_atomic": false
+        },
+        "delete_workflow_instance": false,
+        "description": "Servers with outdated AMP ou any connectivity issue.",
+        "display_name": "Vagner-pb0001-sxo-Amp-Outdated-Webex",
+        "runtime_user": {
+          "target_default": true
+        },
+        "target": {
+          "execute_on_target_group": true,
+          "target_group": {
+            "target_group_id": "target_group_01EJ0TQWPQWBD0qiWqClJKj9FOzwiZRfOFH",
+            "run_on_all_targets": false,
+            "selected_target_types": [
+              "web-service.endpoint"
+            ],
+            "use_criteria": {
+              "choose_target_using_algorithm": "choose_first_with_matching_criteria",
+              "conditions": [
+                {
+                  "operator": "eqi",
+                  "left_operand": "$targetgroup.web-service endpoint.input.display_name$",
+                  "right_operand": "Webex Teams"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "object_type": "definition_workflow",
+      "actions": [
+        {
+          "unique_name": "definition_activity_01TPUAFU6U4K82Yqnlog1f1jUnejGtHwijG",
+          "name": "Execute Python Script",
+          "title": "Execute Python Script",
+          "type": "python3.script",
+          "base_type": "activity",
+          "properties": {
+            "action_timeout": 180,
+            "continue_on_failure": false,
+            "display_name": "Execute Python Script",
+            "script": "import requests\nimport sys\nimport csv\nimport json\n\namp_url = 'https://api.amp.cisco.com/v1/computers'\namp_client_id = '$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPUELNMBTGA3ZCNryZwJOAQtTAdz5MWAB$'\namp_api_key = '$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPWWNVEWU245EoKRL9RX0g3VNFZVH5lZd$'\nhost_list_print = []\n\namp_headers = {\n    'accept': 'application/json',\n    'content-type': 'application/json',\n    'accept-encoding': 'identity',\n    'authorization': 'Basic'\n}\n\namp_query = {\n    'limit': 50,\n    'group_guid': 'fa4473e8-bea0-4386-b0b7-1fb82775c625'\n}\n\nrequest = requests.get(url=amp_url, auth=(amp_client_id, amp_api_key), params=amp_query)\nresponse = request.json()\nprint(request)\n\nprint('[{:^5}]   {:^40} {:^20} {:^20} {:^20} {:^20}'.format(\n    \"Index\",\n    \"Host Name\",\n#    \"Operating System\",\n    \"Internal IP\",\n    \"External IP\",\n    \"Status\",\n    \"Last Seen\"\n    ))\n\nindex = 0\nfor item in response[\"data\"]:\n    index = index + 1\n    if item['av_update_definitions']['status'] != 'Definitions Up To Date' and item['hostname'] != 'mtel-v0099.mtel.com.br' and item['hostname'] != 'MTEL-V0030.mtel.com.br':\n      print('[{:^5}]   {:^40} {:^20} {:^20} {:^20} {:^20}'.format(\n          index,\n          item['hostname'],\n #       item['operating_system'],\n          item['internal_ips'][0],\n          item['external_ip'],\n          item['av_update_definitions']['status'],\n          item['last_seen']\n      ))",
+            "skip_execution": false
+          },
+          "object_type": "definition_activity"
+        },
+        {
+          "unique_name": "definition_activity_01TPVI94PA8H2016OP7ep6z2vMJD1ola4OC",
+          "name": "Condition Block",
+          "title": "Existe Computadores desatualizados?",
+          "type": "logic.if_else",
+          "base_type": "activity",
+          "properties": {
+            "continue_on_failure": false,
+            "display_name": "Existe Computadores desatualizados?",
+            "skip_execution": false
+          },
+          "object_type": "definition_activity",
+          "blocks": [
+            {
+              "unique_name": "definition_activity_01TPVI952I4KQ6PyEiufP8qBasEZTUQdPV0",
+              "name": "Condition Branch",
+              "title": "Yes",
+              "type": "logic.condition_block",
+              "base_type": "activity",
+              "properties": {
+                "condition": {
+                  "left_operand": {
+                    "left_operand": "$activity.definition_activity_01TPUAFU6U4K82Yqnlog1f1jUnejGtHwijG.output.response_body$",
+                    "operator": "mregex",
+                    "right_operand": "Outdated"
+                  },
+                  "operator": "or",
+                  "right_operand": {
+                    "left_operand": "$activity.definition_activity_01TPUAFU6U4K82Yqnlog1f1jUnejGtHwijG.output.response_body$",
+                    "operator": "mregex",
+                    "right_operand": "Failed"
+                  }
+                },
+                "continue_on_failure": false,
+                "display_name": "Yes",
+                "skip_execution": false
+              },
+              "object_type": "definition_activity",
+              "actions": [
+                {
+                  "unique_name": "definition_activity_01TPUQ7UWOGSM28hyx2ACIYHXy6jirvCVZn",
+                  "name": "Condition Block",
+                  "title": "Send instant message to SOC and TI",
+                  "type": "logic.if_else",
+                  "base_type": "activity",
+                  "properties": {
+                    "continue_on_failure": true,
+                    "display_name": "Send instant message to SOC and TI",
+                    "skip_execution": false
+                  },
+                  "object_type": "definition_activity",
+                  "blocks": [
+                    {
+                      "unique_name": "definition_activity_01TPUQ7VCNXR73jDjv6LNQ6DtvAexTyP0dy",
+                      "name": "Condition Branch",
+                      "title": "Was a Webex Teams Room Provided?",
+                      "type": "logic.condition_block",
+                      "base_type": "activity",
+                      "properties": {
+                        "condition": {
+                          "left_operand": "$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPUOZYD5ZAI6M3J5Sm8EXOFL35drUxnig$",
+                          "operator": "ne",
+                          "right_operand": ""
+                        },
+                        "continue_on_failure": false,
+                        "display_name": "Was a Webex Teams Room Provided?",
+                        "skip_execution": false
+                      },
+                      "object_type": "definition_activity",
+                      "actions": [
+                        {
+                          "unique_name": "definition_activity_01TPUS5CFMN4C0cmeP7PU7krovRpOPmkyan",
+                          "name": "Webex Teams - Search for Room",
+                          "title": "Webex Teams - Search for Room",
+                          "type": "workflow.atomic_workflow",
+                          "base_type": "subworkflow",
+                          "properties": {
+                            "continue_on_failure": false,
+                            "display_name": "Webex Teams - Search for Room",
+                            "input": {
+                              "variable_workflow_01PP790MCX1DN3EitpQebkUyJS65DbwS3nU": "$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPUPQXIMLZ66e3Pzkpu98wlu3ksFO2Nsj$",
+                              "variable_workflow_01PP790MCXB392D3R8pxh9fgOTjTde2bcMW": "$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPUOZYD5ZAI6M3J5Sm8EXOFL35drUxnig$",
+                              "variable_workflow_01PP790MCXHP55YE6ylOEITWsWbUFJeyWGv": "",
+                              "variable_workflow_01PP790MCXM9W1MUwo85y8iNRCoQuQ4RGNa": ""
+                            },
+                            "runtime_user": {
+                              "target_default": true
+                            },
+                            "skip_execution": false,
+                            "target": {
+                              "override_workflow_target_group_criteria": true,
+                              "target_group": {
+                                "run_on_all_targets": false,
+                                "use_criteria": {
+                                  "choose_target_using_algorithm": "choose_first_with_matching_criteria",
+                                  "conditions": [
+                                    {
+                                      "left_operand": "$targetgroup.web-service endpoint.input.display_name$",
+                                      "operator": "eqi",
+                                      "right_operand": "Webex Teams"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "workflow_id": "definition_workflow_01PP790MKJNWV6XyJuLdUyNlM2UV3JJACez"
+                          },
+                          "object_type": "definition_activity"
+                        },
+                        {
+                          "unique_name": "definition_activity_01TPUXMBGUR2A7SrprchoNPeZNytungUsW4",
+                          "name": "Condition Block",
+                          "title": "Did we find the room?",
+                          "type": "logic.if_else",
+                          "base_type": "activity",
+                          "properties": {
+                            "continue_on_failure": false,
+                            "display_name": "Did we find the room?",
+                            "skip_execution": false
+                          },
+                          "object_type": "definition_activity",
+                          "blocks": [
+                            {
+                              "unique_name": "definition_activity_01TPUXMBSFTH9085jqSLfV7Hi4SqWUoI8SK",
+                              "name": "Condition Branch",
+                              "title": "Yes",
+                              "type": "logic.condition_block",
+                              "base_type": "activity",
+                              "properties": {
+                                "condition": {
+                                  "left_operand": "$activity.definition_activity_01TPUS5CFMN4C0cmeP7PU7krovRpOPmkyan.output.succeeded$",
+                                  "operator": "eq",
+                                  "right_operand": true
+                                },
+                                "continue_on_failure": false,
+                                "display_name": "Yes",
+                                "skip_execution": false
+                              },
+                              "object_type": "definition_activity",
+                              "actions": [
+                                {
+                                  "unique_name": "definition_activity_01TPUYTWOL2X35Pz8UqJENhYBlBSqvi0Kel",
+                                  "name": "Webex Teams - Post Message to Room",
+                                  "title": "Webex Teams - Post Message to Room",
+                                  "type": "workflow.atomic_workflow",
+                                  "base_type": "subworkflow",
+                                  "properties": {
+                                    "continue_on_failure": false,
+                                    "display_name": "Webex Teams - Post Message to Room",
+                                    "input": {
+                                      "variable_workflow_01PP78DJH1TI76BYfsu9g0Tqj2S6cUxjtu5": "$activity.definition_activity_01TPUS5CFMN4C0cmeP7PU7krovRpOPmkyan.output.variable_workflow_01PP790MCXJ7Y5cAWcGZWbG4Es0126zb1I6$",
+                                      "variable_workflow_01PP78DJH1XNQ7gNQ5iZdperRHqrppzARXC": "$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.local.variable_workflow_01TPUPQXIMLZ66e3Pzkpu98wlu3ksFO2Nsj$",
+                                      "variable_workflow_01PP78DJH1YWL3allalGQbg1VkgKwh9GvCi": "Ola SOC e time de TI, tem alguns servidores que nao estao atualizados e comunicando-se com o AMP, poderiam verificar?\n$activity.definition_activity_01TPUAFU6U4K82Yqnlog1f1jUnejGtHwijG.output.response_body$\n$workflow.definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU.output.variable_workflow_01TPV1B9JZ77D69HnMjrmtCc9KApyY2Hq3W$",
+                                      "variable_workflow_01PP78DJH22BB3Ej3I8tJ4OCQur0unYGjj9": "",
+                                      "variable_workflow_01SVERQNMKN8N6vqX2djMtAfshphGydGsH8": ""
+                                    },
+                                    "runtime_user": {
+                                      "target_default": true
+                                    },
+                                    "skip_execution": false,
+                                    "target": {
+                                      "override_workflow_target_group_criteria": true,
+                                      "target_group": {
+                                        "run_on_all_targets": false,
+                                        "use_criteria": {
+                                          "choose_target_using_algorithm": "choose_first_with_matching_criteria",
+                                          "conditions": [
+                                            {
+                                              "left_operand": "$targetgroup.web-service endpoint.input.display_name$",
+                                              "operator": "eqi",
+                                              "right_operand": "Webex Teams"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "workflow_id": "definition_workflow_01PP78DJMXS415nTjonujf03ROkr6t2PNyw"
+                                  },
+                                  "object_type": "definition_activity"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "categories": [
+        "category_1BMfMXSnJMyt5Ihqi7rWJr5N8cf"
+      ]
+    },
+    "triggers": {
+      "triggerschedule_01TPV6PQOBFQJ203McpfJgJRyPXFSDCuPDL": {
+        "workflow_id": "definition_workflow_01TPU9KQ2BMGZ41kpwL68FcQkV95xCbKCFU",
+        "name": "TI_TESTE",
+        "title": "",
+        "lowercase_name": "schedule.ti_teste",
+        "type": "schedule",
+        "base_type": "trigger",
+        "ref_id": "schedule_01TPWTZIWRI2U1tYIEl8qvF0hxFYK1AtxAb",
+        "version": "",
+        "disabled": true,
+        "unique_name": "triggerschedule_01TPV6PQOBFQJ203McpfJgJRyPXFSDCuPDL",
+        "object_type": "triggerschedule"
+      }
+    },
+    "schedules": {
+      "schedule_01TPWTZIWRI2U1tYIEl8qvF0hxFYK1AtxAb": {
+        "unique_name": "schedule_01TPWTZIWRI2U1tYIEl8qvF0hxFYK1AtxAb",
+        "name": "EMPRESA_TI_DIARIO",
+        "type": "basic.schedule",
+        "base_type": "schedule",
+        "properties": {
+          "calendar": "calendar_recurring_1BMfMWvgiDhSjBQ7hTSyvz3NyVZ",
+          "timezone": "Brazil/East",
+          "starttime": "07:30",
+          "interval_hours": 0,
+          "interval_minutes": 0,
+          "number_of_times": 1,
+          "display_name": "EMPRESA_TI_DIARIO",
+          "description": ""
+        },
+        "version": "1.0.0",
+        "object_type": "schedule"
+      }
+    },
+    "target_groups": {
+      "target_group_01EJ0TQWPQWBD0qiWqClJKj9FOzwiZRfOFH": {
+        "unique_name": "target_group_01EJ0TQWPQWBD0qiWqClJKj9FOzwiZRfOFH",
+        "name": "Default TargetGroup",
+        "title": "Default TargetGroup",
+        "type": "generic.target_group",
+        "base_type": "target_group",
+        "version": "1.0.0",
+        "targets": [
+          {
+            "data_target_type": "web-service.endpoint",
+            "view_target_type": "web-service.endpoint",
+            "include_all_targets": true
+          },
+          {
+            "data_target_type": "email.smtp_endpoint",
+            "view_target_type": "email.smtp_endpoint",
+            "include_all_targets": true
+          }
+        ],
+        "object_type": "target_group"
+      }
+    },
+    "atomic_workflows": [
+      "definition_workflow_01PP790MKJNWV6XyJuLdUyNlM2UV3JJACez",
+      "definition_workflow_01PP78DJMXS415nTjonujf03ROkr6t2PNyw"
+    ]
+  }
